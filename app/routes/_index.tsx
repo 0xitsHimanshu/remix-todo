@@ -1,6 +1,7 @@
-import type { MetaFunction } from "@remix-run/node";
-import { Link } from "@remix-run/react";
-// import { Link } from "@remix-run/react";
+import type { ActionFunctionArgs, MetaFunction } from "@remix-run/node";
+import { Form, Link, json, useLoaderData } from "@remix-run/react";
+import { todos } from "~/lib/db.server";
+
 
 export const meta: MetaFunction = () => {
   return [
@@ -9,9 +10,23 @@ export const meta: MetaFunction = () => {
   ];
 };
 
+export async function loader() {
+  return json({ tasks: await todos.read() });
+}
+
+export async function action({request}: ActionFunctionArgs){
+  const formdata = await request.formData();
+
+  const { description } = Object.fromEntries(formdata);
+  await todos.create(description as string);
+
+  return json({ok: true});
+}
+
 export default function Index() {
-  const tasks: string[] = [];
-  
+ 
+  const { tasks } = useLoaderData<typeof loader>();
+
   return (
     <div className="flex flex-1 items-center h-screen flex-col">
       <header className="mb-12 pt-6 px-6 flex items-center justify-between w-full">
@@ -23,7 +38,10 @@ export default function Index() {
         </select>
       </header>
       <main className="flex-1 space-y-8">
-        <form className="rounded-full border border-gray-200 bg-white/90 shadow-md ">
+        <Form
+          method="post" 
+          className="rounded-full border border-gray-200 bg-white/90 shadow-md "
+        >
           <fieldset className="flex items-center gap-2 p-2 text-sm">
             <input
               type="text"
@@ -36,13 +54,13 @@ export default function Index() {
               Add
             </button>
           </fieldset>
-        </form>
+        </Form>
  
         <div className="rounded-3xl border border-gray-200 bg-white/90 px-4 py-2">
           {tasks.length > 0 ? (
             <ul>
               {tasks.map((task) => (
-                <li key={task}>{task}</li>
+                <li key={task.id}>{task.description}</li>
               ))}
             </ul>
           ) : (
