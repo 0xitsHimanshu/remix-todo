@@ -1,7 +1,10 @@
 import type { ActionFunctionArgs, MetaFunction } from "@remix-run/node";
-import { Link, json, useFetcher, useLoaderData } from "@remix-run/react";
-import type { Item } from "~/type";
+import { Form, Link, json, useFetcher, useLoaderData, useSearchParams } from "@remix-run/react";
+import type { Item, View } from "~/type";
+
+import TodoActions from "~/components/TodoActions";
 import TodoList from "~/components/TodoList";
+
 import { todos } from "~/lib/db.server";
 
 export const meta: MetaFunction = () => {
@@ -52,6 +55,16 @@ export async function action({ request }: ActionFunctionArgs) {
       break;
     }
 
+    case "clear completed": {
+      await todos.clearCompleted();
+      break;
+    }
+
+    case "delete all": {
+      await todos.deleteAll();
+      break;
+    }
+
     default: {
       throw new Response("Unknown intent", { status: 400 });
     }
@@ -63,6 +76,8 @@ export async function action({ request }: ActionFunctionArgs) {
 export default function Index() {
   const { tasks } = useLoaderData<typeof loader>();
   const fetcher = useFetcher();
+  const [searchParams] = useSearchParams();
+  const view = searchParams.get("view") || "all";
 
   return (
     <div className="flex flex-1 items-center h-screen flex-col">
@@ -100,50 +115,50 @@ export default function Index() {
         </fetcher.Form>
 
         <div className="rounded-3xl border border-gray-200 bg-white/90 px-4 py-2">
-          {tasks.length > 0 ? (
-            <TodoList todos={tasks as unknown as Item[]} />
-          ) : (
-            <p className="text-center leading-7">No tasks available</p>
-          )}
+          <TodoList todos={tasks as unknown as Item[]} view={view as View} />
         </div>
 
         <div className="rounded-3xl border border-gray-200 bg-white/90 px-4 py-2">
-          <div className="flex items-center justify-between gap-4 text-sm">
-            <p className="text-center leading-7">
-              {tasks.length} {tasks.length === 1 ? "item" : "items"} left
-            </p>
-            <div className="flex items-center gap-4">
-              <button className="text-red-400 transition hover:text-red-600">
-                Clear Completed
-              </button>
-              <button className="text-red-400 transition hover:text-red-600">
-                Delete All
-              </button>
-            </div>
-          </div>
+          <TodoActions tasks={tasks as unknown as Item[]} />
         </div>
 
         <div className="rounded-3xl border border-gray-200 bg-white/90 px-4 py-2">
-          <div className="flex items-center justify-center gap-12 text-sm">
+          <Form 
+            className="flex items-center justify-center gap-12 text-sm"
+          >
             <button
               aria-label="View all tasks"
-              className="opacity-50 transition hover:opacity-100"
-            >
+              name="view"
+              value="all"
+              className={`transition ${
+                view === "all" ? "font-bold" : "opacity-50 hover:opacity-100"
+              }`}
+              >
               All
             </button>
             <button
               aria-label="View active tasks"
-              className="opacity-50 transition hover:opacity-100"
-            >
+              name="view"
+              value="active"
+              className={`transition ${
+                view === "active" ? "font-bold" : "opacity-50 hover:opacity-100"
+              }`}
+              >
               Active
             </button>
             <button
               aria-label="View completed"
-              className="opacity-50 transition hover:opacity-100"
-            >
+              name="view"
+              value="completed"
+              className={`transition ${
+                view === "completed"
+                  ? "font-bold"
+                  : "opacity-50 hover:opacity-100"
+              }`}
+              >
               Completed
             </button>
-          </div>
+          </Form>
         </div>
       </main>
 

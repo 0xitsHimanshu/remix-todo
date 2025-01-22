@@ -27,7 +27,23 @@ export default function TodoActions({tasks}: {tasks: Item[]}) {
                       }
                 }}
             >
+              <button
+                disabled={!tasks.some((todo) => todo.completed)}
+                name="intent"
+                value={"clear completed"}
+                className="text-red-400 transition hover:text-red-600 disabled:pointer-events-none disabled:opacity-25"
+              >
+                Clear Completed
+              </button>
 
+              <button
+                disabled={tasks.length === 0}
+                name="intent"
+                value={"delete all"}
+                className="text-red-400 transition hover:text-red-600 disabled:pointer-events-none disabled:opacity-25"
+              >
+                Delete All
+              </button>
             </fetcher.Form>
         </div>
    )
