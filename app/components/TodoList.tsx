@@ -1,3 +1,4 @@
+import { useFetchers } from "@remix-run/react";
 import { useMemo } from "react";
 import type { Item, View } from "~/type";
  
@@ -5,12 +6,39 @@ import TodoItem from "~/components/TodoItem";
  
 export default function TodoList({ todos, view, }: { todos: Item[]; view: View; }) {
 
-  const visibleTodos = useMemo(() => 
-    todos.filter((todo) => 
-      view === 'active' ? !todo.completed : view === 'completed' ? todo.completed : true,
-    ),
-    [todos, view],
+  const fetchers = useFetchers();
+ 
+  const isDeleting = fetchers.some(
+    (fetcher) =>
+      fetcher.state !== "idle" &&
+      fetcher.formData?.get("intent") === "delete task"
   );
+ 
+  const deletingTodoIds = fetchers
+    .filter(
+      (fetcher) =>
+        fetcher.state !== "idle" &&
+        fetcher.formData?.get("intent") === "delete task"
+    )
+    .map((fetcher) => fetcher.formData?.get("id"));
+
+  const visibleTodos = useMemo(() => {
+    let filteredTodos = todos.filter((todo) =>
+      view === "active"
+        ? !todo.completed
+        : view === "completed"
+        ? todo.completed
+        : true
+    );
+ 
+    if (isDeleting) {
+      filteredTodos = filteredTodos.filter(
+        (todo) => !deletingTodoIds.includes(todo.id)
+      );
+    }
+ 
+    return filteredTodos;
+  }, [deletingTodoIds, isDeleting, todos, view]);
 
   if(visibleTodos.length === 0) {
     return (

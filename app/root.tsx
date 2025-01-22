@@ -1,11 +1,16 @@
+import type { LoaderFunctionArgs } from "@remix-run/node";
 import {
   Links,
   Meta,
   Outlet,
   Scripts,
   ScrollRestoration,
+  json
 } from "@remix-run/react";
 import type { LinksFunction } from "@remix-run/node";
+
+import { useTheme } from "./components/ThemeScript";
+import { parseTheme } from "./lib/theme-cookie.server";
 
 import "./tailwind.css";
 
@@ -22,9 +27,16 @@ export const links: LinksFunction = () => [
   },
 ];
 
+export async function loader({ request }: LoaderFunctionArgs) {
+  const theme = await parseTheme(request);
+ 
+  return json({ theme }, { headers: { Vary: "Cookie" } });
+}
+
 export function Layout({ children }: { children: React.ReactNode }) {
+  const theme = useTheme() === "dark" ? "dark" : "";
   return (
-    <html lang="en">
+    <html lang="en"  className={`bg-white/90 font-system antialiased dark:bg-gray-900 ${theme}`}>
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
