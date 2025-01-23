@@ -9,7 +9,7 @@ import {
 } from "@remix-run/react";
 import type { LinksFunction } from "@remix-run/node";
 
-import { useTheme } from "./components/ThemeScript";
+import { ThemeScript, useTheme } from "./components/ThemeScript";
 import { parseTheme } from "./lib/theme-cookie.server";
 
 import "./tailwind.css";
@@ -38,6 +38,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en"  className={`bg-white/90 font-system antialiased dark:bg-gray-900 ${theme}`}>
       <head>
+        <ThemeScript />
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <Meta />
